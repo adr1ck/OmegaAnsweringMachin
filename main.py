@@ -97,12 +97,6 @@ class NBC:
             key: 0 for key in self._events.keys()
         }
 
-    def _laplace(self, C):
-        if C:
-            return (self._V + self._L('true')) / (self._V + self._L('false'))
-        else:
-            return 1
-
     def _D(self, C=None):
         if C is None:
             return sum([i for i in self._events.values()])
@@ -113,8 +107,7 @@ class NBC:
         return sum([word[C] for word in self._model_data.values()])
 
     def _Wic(self, i, C):
-        return self._model_data.get(i, self._unique_word_data)[C]\
-               + self._laplace(C)
+        return self._model_data.get(i, self._unique_word_data)[C]
 
     def _P(self, C, Q, Dc, D, Lc, V):
         prior_P = log(Dc / D)
