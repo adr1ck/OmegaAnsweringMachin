@@ -1,0 +1,4 @@
+asyncpg==0.22.0
+googletrans==3.0.0
+pyaspeller==0.2.0
+Telethon==1.21.1
