@@ -89,33 +89,43 @@ class NBC:
     Naive Bayes classifier for a sequence of events
     """
 
-    def __init__(self, model_data):
-        self._model_data = model_data['data']
-        self._events = model_data['events']
+    def __init__(self, model):
+        self._model_data = model['data']
+        self._events = model['events']
         self._V = len(self._model_data)
-        self._unique_word_data = {
-            key: 0 for key in self._events.keys()
-        }
+        self._D_all = sum([i for i in self._events.values()])
 
-    def _D(self, C=None):
-        if C is None:
-            return sum([i for i in self._events.values()])
-        else:
-            return self._events[C]
+        self._unique_word_data = {
+            cls: 0 for cls in self._events.keys()
+        }
+        self._L_dict = {
+            cls: sum(word[cls] for word in self._model_data.values())
+            for cls in self._events.keys()
+        }
+        self._Lmax = max(self._L(cls) for cls in self._events.keys())
+
+    def _additive_smoothing(self, C):
+        return (self._V + self._L(C)) / (self._V + self._Lmax)
+
+    def _D(self, C):
+        return self._events[C]
 
     def _L(self, C):
-        return sum([word[C] for word in self._model_data.values()])
+        return self._L_dict[C]
 
     def _Wic(self, i, C):
-        return self._model_data.get(i, self._unique_word_data)[C]
+        return self._model_data.get(i, self._unique_word_data)[C] + \
+               self._additive_smoothing(C)
 
     def _P(self, C, Q, Dc, D, Lc, V):
         prior_P = log(Dc / D)
         P_of_events = [log(self._Wic(i, C) / (V + Lc)) for i in Q]
         return prior_P + sum(P_of_events)
 
-    def calculate(self, Q: list, C) -> float:
-        return self._P(C, Q, self._D(C), self._D(), self._L(C), self._V)
+    def calculate(self, words: list, cls) -> float:
+        return self._P(
+            cls, words, self._D(cls), self._D_all, self._L(cls), self._V
+        )
 
 
 class User(asyncpg.Record):
