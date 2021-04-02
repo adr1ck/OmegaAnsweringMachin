@@ -93,7 +93,7 @@ class NBC:
         self._model_data = model['data']
         self._events = model['events']
         self._V = len(self._model_data)
-        self._D_all = sum([i for i in self._events.values()])
+        self._D = sum([i for i in self._events.values()])
 
         self._unique_word_data = {
             cls: 0 for cls in self._events.keys()
@@ -102,15 +102,15 @@ class NBC:
             cls: sum(word[cls] for word in self._model_data.values())
             for cls in self._events.keys()
         }
-        self._Lmax = max(self._L(cls) for cls in self._events.keys())
+        self._Lmax = max(self._Lc(cls) for cls in self._events.keys())
 
     def _additive_smoothing(self, C):
-        return (self._V + self._L(C)) / (self._V + self._Lmax)
+        return (self._V + self._Lc(C)) / (self._V + self._Lmax)
 
-    def _D(self, C):
+    def _Dc(self, C):
         return self._events[C]
 
-    def _L(self, C):
+    def _Lc(self, C):
         return self._L_dict[C]
 
     def _Wic(self, i, C):
@@ -122,9 +122,9 @@ class NBC:
         P_of_events = [log(self._Wic(i, C) / (V + Lc)) for i in Q]
         return prior_P + sum(P_of_events)
 
-    def calculate(self, words: list, cls) -> float:
+    def calculate(self, words: list, cls: str) -> float:
         return self._P(
-            cls, words, self._D(cls), self._D_all, self._L(cls), self._V
+            cls, words, self._Dc(cls), self._D, self._Lc(cls), self._V
         )
 
 
